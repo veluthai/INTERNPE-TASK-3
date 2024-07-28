@@ -1,0 +1,86 @@
+import tkinter as tk
+import random
+class SnakeGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Snake Game")
+        self.width = 400
+        self.height = 400
+        self.canvas = tk.Canvas(root, width=self.width, height=self.height, bg='black')
+        self.canvas.pack()
+        
+        self.snake = [(20, 20), (20, 30), (20, 40)]
+        self.snake_dir = 'Down'
+        self.food = self.place_food()
+        self.game_over = False
+        
+        self.root.bind("<KeyPress>", self.change_direction)
+        
+        self.update_snake()
+        self.move_snake()
+
+    def place_food(self):
+        x = random.randint(0, (self.width // 10) - 1) * 10
+        y = random.randint(0, (self.height // 10) - 1) * 10
+        return (x, y)
+    
+    def change_direction(self, event):
+        new_dir = event.keysym
+        all_directions = {'Up', 'Down', 'Left', 'Right'}
+        opposites = ({'Up', 'Down'}, {'Left', 'Right'})
+        
+        if new_dir in all_directions and not any({self.snake_dir, new_dir} == opp for opp in opposites):
+            self.snake_dir = new_dir
+
+    def move_snake(self):
+        if self.game_over:
+            return
+        
+        head_x, head_y = self.snake[0]
+        
+        if self.snake_dir == 'Up':
+            head_y -= 10
+        elif self.snake_dir == 'Down':
+            head_y += 10
+        elif self.snake_dir == 'Left':
+            head_x -= 10
+        elif self.snake_dir == 'Right':
+            head_x += 10
+        
+        new_head = (head_x, head_y)
+        
+        if self.check_collision(new_head):
+            self.end_game()
+            return
+        
+        self.snake.insert(0, new_head)
+        
+        if new_head == self.food:
+            self.food = self.place_food()
+        else:
+            self.snake.pop()
+        
+        self.update_snake()
+        self.root.after(100, self.move_snake)
+
+    def check_collision(self, head):
+        x, y = head
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            return True
+        if head in self.snake[1:]:
+            return True
+        return False
+
+    def update_snake(self):
+        self.canvas.delete(tk.ALL)
+        self.canvas.create_rectangle(self.food[0], self.food[1], self.food[0]+10, self.food[1]+10, fill='red')
+        
+        for x, y in self.snake:
+            self.canvas.create_rectangle(x, y, x+10, y+10, fill='green')
+
+    def end_game(self):
+        self.game_over = True
+        self.canvas.create_text(self.width//2, self.height//2, text="GAME OVER", fill="white", font=('Arial', 24))
+if __name__ = tk.Tk()
+game = SnakeGame(root)
+root.mainloop()
